@@ -741,19 +741,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
       <label class="req">الاسم</label>
       <input type="text" id="parentName" required>
 
-      <div class="row">
-        <div>
-          <label class="req">رقم الهاتف (واتساب)</label>
-          <input type="tel" id="phone" required placeholder="09xxxxxxxx">
-        </div>
-        <div>
-          <label class="req">الصفة</label>
-          <div class="radio-group" id="militaryStatusGroup">
-            <label class="pill"><input type="radio" name="mstatus" value="ضابط">ضابط</label>
-            <label class="pill"><input type="radio" name="mstatus" value="فرد">فرد</label>
-          </div>
-        </div>
-      </div>
+      <label class="req">رقم الهاتف (واتساب)</label>
+      <input type="tel" id="phone" required placeholder="09xxxxxxxx">
 
       <label class="req">الحي / المنطقة السكنية</label>
       <select id="neighborhood" required></select>
@@ -876,6 +865,7 @@ NEIGHBORHOODS.forEach(n=>{
   opt.value = n; opt.textContent = n;
   neighSelect.appendChild(opt);
 });
+neighSelect.value = "المعضمية";
 // إحداثيات تقريبية لمركز كل حي/منطقة (لتحريك الخريطة تلقائياً عند الاختيار)
 const NEIGH_COORDS = {
   "المزة":[33.5014,36.2468], "أبو رمانة":[33.5195,36.2807], "المالكي":[33.5174,36.2715],
@@ -903,7 +893,7 @@ neighSelect.addEventListener('change', ()=>{
 });
 
 // ============== خريطة تحديد الموقع ==============
-const map = L.map('locationMap').setView([33.5138, 36.2765], 12); // مركز دمشق تقريباً
+const map = L.map('locationMap').setView(NEIGH_COORDS["المعضمية"], 14.5); // المعضمية كحي افتراضي
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap'
 }).addTo(map);
@@ -1115,13 +1105,6 @@ function initChildCard(div, id){
 document.getElementById('addChildBtn').addEventListener('click', addChild);
 addChild();
 
-document.querySelectorAll('#militaryStatusGroup .pill').forEach(pill=>{
-  pill.addEventListener('click',()=>{
-    document.querySelectorAll('#militaryStatusGroup .pill').forEach(p=>p.classList.remove('active'));
-    pill.classList.add('active');
-  });
-});
-
 // ============== إرسال البيانات ==============
 document.getElementById('regForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
@@ -1131,7 +1114,6 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
 
   const parentName = document.getElementById('parentName').value.trim();
   const phone = document.getElementById('phone').value.trim();
-  const mstatusInput = document.querySelector('input[name="mstatus"]:checked');
   let neighborhood = document.getElementById('neighborhood').value;
   if(neighborhood==='أخرى'){
     const other = document.getElementById('neighborhoodOther').value.trim();
@@ -1168,7 +1150,7 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
     const type = card.querySelector(`input[name="type-${cid}"]:checked`).value;
     if(!cname || !cage){ valid=false; return; }
 
-    const base = {parentName,phone,militaryStatus:mstatusInput?mstatusInput.value:'',neighborhood,lat,lng,notes,childName:cname,childGender:gender,childAge:cage};
+    const base = {parentName,phone,neighborhood,lat,lng,notes,childName:cname,childGender:gender,childAge:cage};
 
     if(type==='camp'){
       rows.push({...base, registrationType:'معسكر صيفي', activityName:'المعسكر الصيفي المتكامل', group:'يومي', period:'8:00ص - 2:00م'});
