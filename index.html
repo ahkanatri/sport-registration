@@ -701,7 +701,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   .pill.active{background:var(--green-deep);border-color:var(--green-deep);color:#fff;}
   .child-card{border:1.5px dashed var(--gold);border-radius:var(--radius);padding:18px;margin-bottom:16px;background:linear-gradient(180deg,#fffdf6,#fbf6e6);position:relative;}
   .child-card .child-title{font-weight:700;color:var(--green-deep);margin-bottom:4px;font-size:15px;}
-  .remove-child{position:absolute;left:14px;top:14px;background:none;border:none;color:var(--danger);font-size:13px;cursor:pointer;font-family:inherit;}
+  .remove-child{position:absolute;left:14px;top:14px;background:none;border:none;color:var(--danger);font-size:13px;cursor:pointer;font-family:inherit;z-index:5;}
   .activity-block{border:1px solid #e6dcb8;border-radius:10px;padding:12px 14px;margin-top:10px;background:#fff;}
   .activity-block .a-title{font-weight:700;font-size:14px;color:var(--green-deep);margin-bottom:8px;}
   .sub-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
@@ -876,8 +876,30 @@ NEIGHBORHOODS.forEach(n=>{
   opt.value = n; opt.textContent = n;
   neighSelect.appendChild(opt);
 });
+// إحداثيات تقريبية لمركز كل حي/منطقة (لتحريك الخريطة تلقائياً عند الاختيار)
+const NEIGH_COORDS = {
+  "المزة":[33.5014,36.2468], "أبو رمانة":[33.5195,36.2807], "المالكي":[33.5174,36.2715],
+  "كفرسوسة":[33.4844,36.2685], "الشعلان":[33.5180,36.2890], "الصالحية":[33.5291,36.2875],
+  "القصاع":[33.5177,36.3167], "باب توما":[33.5114,36.3150], "باب شرقي":[33.5094,36.3180],
+  "القيمرية":[33.5104,36.3091], "الميدان":[33.4913,36.2983], "القدم":[33.4707,36.2875],
+  "الشاغور":[33.4892,36.3119], "ركن الدين":[33.5400,36.2983], "المهاجرين":[33.5230,36.2766],
+  "الروضة":[33.5217,36.2873], "برزة":[33.5573,36.3119], "القابون":[33.5466,36.3363],
+  "جوبر":[33.5192,36.3308], "عش الورور":[33.5650,36.3214], "دمر البلد":[33.5398,36.2405],
+  "دمر المشروع":[33.5297,36.2278], "قدسيا":[33.5470,36.2143], "التل":[33.5935,36.3204],
+  "وادي بردى":[33.6256,36.1077], "الزبداني":[33.7258,36.1042], "مضايا":[33.6905,36.1018],
+  "حرستا":[33.5568,36.3661], "دوما":[33.5684,36.4075], "عربين":[33.5379,36.3643],
+  "سقبا":[33.5203,36.3850], "كفربطنا":[33.5130,36.3711], "جرمانا":[33.4809,36.3561],
+  "صحنايا":[33.4309,36.2260], "المعضمية":[33.4613,36.1925], "داريا":[33.4547,36.2443],
+  "سبينة":[33.4366,36.2875], "السيدة زينب":[33.4430,36.3336], "يلدا":[33.4646,36.3200],
+  "ببيلا":[33.4696,36.3200], "بيت سحم":[33.4682,36.3525], "الحجر الأسود":[33.4640,36.3022],
+  "عقربا":[33.4414,36.3742], "حجيرة":[33.4389,36.3182], "عين ترما":[33.5137,36.3471],
+  "خان الشيح":[33.3733,36.1138], "جديدة عرطوز":[33.4397,36.1627]
+};
+
 neighSelect.addEventListener('change', ()=>{
   document.querySelector('.other-neigh').style.display = neighSelect.value==='أخرى' ? 'block':'none';
+  const coords = NEIGH_COORDS[neighSelect.value];
+  if(coords){ map.flyTo(coords, 14.5, {duration:0.8}); }
 });
 
 // ============== خريطة تحديد الموقع ==============
@@ -916,7 +938,7 @@ function addChild(){
   div.className = 'child-card';
   div.dataset.childId = id;
   div.innerHTML = `
-    <button type="button" class="remove-child" onclick="removeChild(${id})">✕ إزالة</button>
+    <button type="button" class="remove-child" data-remove="${id}">✕ إزالة</button>
     <div class="child-title">الطفل رقم ${id}</div>
     <div class="row">
       <div><label class="req">اسم الطفل</label><input type="text" class="c-name" required></div>
@@ -941,6 +963,7 @@ function addChild(){
     </div>
   `;
   container.appendChild(div);
+  div.querySelector('.remove-child').addEventListener('click', ()=>{ div.remove(); });
   initChildCard(div, id);
 }
 
