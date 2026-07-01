@@ -181,7 +181,7 @@
 // ============== إعدادات ==============
 const CONFIG = {
   // ضع هنا رابط تطبيق الويب (Web App URL) بعد نشر كود Apps Script — راجع ملف التعليمات المرفق
-  SCRIPT_URL: "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE"
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxTN-vYQg3Jupnjgd_3Gj8kZaZJ8MD50rdgg8uH4c49HJx2swsvlJEbwbe6CLQJ56Rt/exec"
 };
 
 // تعريف النشاطات: كل نشاط له مجموعات (أيام) وفترات (صباحي/مسائي) حسب الجداول المرفقة
@@ -463,7 +463,7 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
     return;
   }
 
-  if(CONFIG.SCRIPT_URL.includes('https://script.google.com/macros/s/AKfycbxTN-vYQg3Jupnjgd_3Gj8kZaZJ8MD50rdgg8uH4c49HJx2swsvlJEbwbe6CLQJ56Rt/exec')){
+  if(CONFIG.SCRIPT_URL.includes('PASTE_YOUR')){
     statusMsg.textContent='⚠️ لم يتم ربط النموذج بعد بقاعدة البيانات (SCRIPT_URL). راجع ملف التعليمات.';
     statusMsg.className='status-msg err';
     return;
@@ -471,12 +471,16 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
 
   btn.disabled = true; btn.textContent='جاري الإرسال...';
   try{
+    // ملاحظة: نستخدم no-cors لأن Google Apps Script لا يعيد ترويسات CORS القياسية
+    // عبر إعادة التوجيه الداخلية لديه؛ هذا يمنع خطأ "Failed to fetch" في المتصفح.
+    // الأثر الجانبي: لا يمكننا قراءة رد الخادم للتأكد من النجاح، لذا نتحقق يدوياً لاحقاً من الشيت.
     await fetch(CONFIG.SCRIPT_URL, {
       method:'POST',
+      mode:'no-cors',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify(rows)
     });
-    statusMsg.textContent = `✅ تم تسجيل ${rows.length} بيانات بنجاح. سنتواصل معكم لتأكيد التسجيل والنقل.`;
+    statusMsg.textContent = `✅ تم إرسال بيانات ${rows.length} تسجيل. سنتواصل معكم لتأكيد التسجيل والنقل.`;
     statusMsg.className='status-msg ok';
     e.target.reset();
     container.innerHTML=''; childCount=0; addChild();
@@ -484,7 +488,7 @@ document.getElementById('regForm').addEventListener('submit', async (e)=>{
       if(!p.querySelector('input[name="type-1"]')) p.classList.remove('active');
     });
   }catch(err){
-    statusMsg.textContent='حدث خطأ أثناء الإرسال. يرجى المحاولة مجدداً أو التواصل هاتفياً.';
+    statusMsg.textContent='تعذّر الاتصال بالخادم (تحقق من اتصالك بالإنترنت). يرجى المحاولة مجدداً أو التواصل هاتفياً.';
     statusMsg.className='status-msg err';
   }
   btn.disabled=false; btn.textContent='إرسال التسجيل';
